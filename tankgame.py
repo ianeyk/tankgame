@@ -9,6 +9,16 @@ except ImportError, err:
     print "%s Failed to Load Module: %s" % (__file__, err)
     sys.exit(1)
 
+
+def rotateSquareImage(image, angle):
+    """rotate an image while keeping its center and size"""
+    orig_rect = image.get_rect()
+    rot_image = pygame.transform.rotate(image, angle)
+    rot_rect = orig_rect.copy()
+    rot_rect.center = rot_image.get_rect().center
+    rot_image = rot_image.subsurface(rot_rect).copy()
+    return rot_image
+
 class Paddle(pygame.sprite.Sprite):
     """A paddle sprite. Subclasses the pygame sprite class.
     Handles its own position so it will not go off the screen."""
@@ -17,7 +27,9 @@ class Paddle(pygame.sprite.Sprite):
         # initialize the pygame sprite part
         pygame.sprite.Sprite.__init__(self)
         # set image and rect
-        self.image = pygame.image.load(os.path.join('images','pong_paddle.gif'))
+        self.originalImage = pygame.image.load(os.path.join('images','tank.png'))
+
+        self.image = self.originalImage.copy() 
         self.rect = self.image.get_rect()
 
         # set position
@@ -25,10 +37,15 @@ class Paddle(pygame.sprite.Sprite):
 
         # the movement speed of our paddle
         self.movementspeed = 5
+        self.rotSpeed = 5
+
+
+        self.angle = 0
 
         # the current velocity of the paddle -- can only move in Y direction
         self.velocity_x = 0
         self.velocity_y = 0
+        self.velocity_rot = 0
 
     def up(self):
         """Increases the vertical velocity"""
@@ -37,6 +54,21 @@ class Paddle(pygame.sprite.Sprite):
     def down(self):
         """Decreases the vertical velocity"""
         self.velocity_y += self.movementspeed
+
+    def left(self):
+        """Increases the horizontal velocity"""
+        self.velocity_x -= self.movementspeed
+
+    def right(self):
+        """Decreases the horizontal velocity"""
+        self.velocity_x += self.movementspeed
+
+    def rotateCcw(self):
+        self.velocity_rot -= self.rotSpeed
+
+    def rotateCw(self): 
+        self.velocity_rot += self.rotSpeed
+
 
     def move(self, dx, dy):
         """Move the paddle. Don't go off the screen."""
@@ -57,6 +89,10 @@ class Paddle(pygame.sprite.Sprite):
     def update(self):
         """Called to update the sprite. Do this every frame. Handles
         moving the sprite by its velocity"""
+        self.angle += self.velocity_rot
+        self.image = rotateSquareImage(self.originalImage.copy(), self.angle)
+
+
         self.move(self.velocity_x, self.velocity_y)
 
 
@@ -298,6 +334,16 @@ class Game(object):
                 elif event.key == K_s:
                     self.leftpaddle.down()
 
+                # elif event.key == K_d:
+                #     self.leftpaddle.right()
+                # elif event.key == K_a:
+                #     self.leftpaddle.left()
+
+                # elif event.key == K_RIGHT:
+                #     self.rightpaddle.right()
+                # elif event.key == K_LEFT:
+                #     self.rightpaddle.left()
+
                 elif event.key == K_UP:
                     self.rightpaddle.up()
                 elif event.key == K_DOWN:
@@ -307,6 +353,18 @@ class Game(object):
                     if self.ball.velx == 0 and self.ball.vely == 0:
                         self.ball.serve()
 
+                elif event.key == K_a:
+                    self.leftpaddle.rotateCcw()
+                elif event.key == K_d:
+                    self.leftpaddle.rotateCw()
+
+                elif event.key == K_LEFT:
+                    self.rightpaddle.rotateCcw()
+                elif event.key == K_RIGHT:
+                    self.rightpaddle.rotateCw()
+
+
+
             elif event.type == KEYUP:
                 # paddle control
                 if event.key == K_w:
@@ -314,10 +372,30 @@ class Game(object):
                 elif event.key == K_s:
                     self.leftpaddle.up()
 
+                # elif event.key == K_d:
+                #     self.leftpaddle.left()
+                # elif event.key == K_a:
+                #     self.leftpaddle.right()
+
                 elif event.key == K_UP:
                     self.rightpaddle.down()
                 elif event.key == K_DOWN:
                     self.rightpaddle.up()
+
+                # elif event.key == K_RIGHT:
+                #     self.rightpaddle.left()
+                # elif event.key == K_LEFT:
+                #     self.rightpaddle.right()
+
+                elif event.key == K_a:
+                    self.leftpaddle.rotateCw()
+                elif event.key == K_d:
+                    self.leftpaddle.rotateCcw()
+
+                elif event.key == K_LEFT:
+                    self.rightpaddle.rotateCw()
+                elif event.key == K_RIGHT:
+                    self.rightpaddle.rotateCcw()
 
         return True
 
@@ -326,14 +404,3 @@ class Game(object):
 if __name__ == '__main__':
     game = Game()
     game.run()
-
-
-
-
-
-
-
-
-
-                
-
